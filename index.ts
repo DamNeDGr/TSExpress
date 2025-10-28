@@ -1,5 +1,3 @@
-import {config} from 'dotenv'
-config()
 import express from 'express'
 import  UserRouter from './router/user'
 import AuthRouter from './router/auth'
