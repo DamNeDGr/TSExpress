@@ -1,0 +1,28 @@
+{
+  "name": "tslesson",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prisma": "^6.18.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.4",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "zod": "^4.1.12"
+  }
+}
