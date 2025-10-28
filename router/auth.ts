@@ -1,11 +1,14 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import type { IUser } from "../types/UserTypes";
-import { addUser, checkUser, deleteUser } from "../utils/utils";
+import { addUser, checkUser, deleteUser, generateToken } from "../utils/utils";
 import { prisma } from "../db/db";
 import { loginScheme, registerSchema } from "../utils/validator";
 
 const router = Router();
+
+
+
 
 router.post("/login", async (req: Request<{}, {}, IUser>, res: Response) => {
 	const parsed = loginScheme.safeParse(req.body);
@@ -17,10 +20,11 @@ router.post("/login", async (req: Request<{}, {}, IUser>, res: Response) => {
 	const auth = await checkUser(parsed.data.email, parsed.data.password);
 	if (!auth)
 		return res.status(401).json({ message: "Неверный email или пароль", status: 'error'});
+	const token = await generateToken(auth.id, auth.email)
 	res.status(200).json({
-		message: `Welcome ${auth.email}`,
+		message: `Welcome ${auth.username}`,
 		status: "success",
-		token: "awdawdawda@Eawdawdaw",
+		token: token,
 	});
 });
 
@@ -45,7 +49,7 @@ router.post("/register", async (req: Request<{}, {}, IUser>, res: Response) => {
 			parsed.data.password
 		);
 		return res
-			.status(200)
+			.status(201)
 			.json({ message: `Register Success`, data: (await newUser).email});
 	} catch (err) {
 		return res.status(409).json({ error: "Conflict email" });

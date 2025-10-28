@@ -1,6 +1,30 @@
 import { Users } from "../db/users";
 import { prisma } from "../db/db";
 import bcrypt from 'bcrypt'
+import jwt from "jsonwebtoken";
+
+
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES = "1h";
+
+
+export const generateToken = async (id: number, email: string) => {
+	if(JWT_SECRET && JWT_EXPIRES){
+		const token = jwt.sign(
+			{
+				userId: id,
+				email: email
+			},
+			JWT_SECRET,
+			{expiresIn: JWT_EXPIRES}
+		)
+		return token
+	}
+}
+
+
+
 
 export const checkUser = async (email: string, password: string) => {
 	const user = await prisma.users.findUnique({
