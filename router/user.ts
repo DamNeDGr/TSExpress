@@ -1,11 +1,11 @@
 import { Router } from "express";
 import type { Request, Response } from "express";
 import { prisma } from "../db/db";
-import { authToken } from "../middleware/authMiddleware";
+import { authToken, checkAdmin } from "../middleware/authMiddleware";
 
 const router = Router();
 
-router.get("/users", async (req: Request, res: Response) => {
+router.get("/users", checkAdmin, async (req: Request, res: Response) => {
 	const users = await prisma.users.findMany();
 	return res.json(users);
 });
