@@ -17,7 +17,8 @@ router.post("/login", async (req: Request<{}, {}, IUser>, res: Response) => {
 		return res
 			.status(401)
 			.json({ message: "Неверный email или пароль", status: "error" });
-	const token = await generateToken(auth.id, auth.email);
+	if(!auth.role) return res.status(409).json({ error: "Conflict email" });
+	const token = await generateToken(auth.id, auth.email, auth.role);
 	res.status(200).json({
 		message: `Welcome ${auth.username}`,
 		status: "success",
