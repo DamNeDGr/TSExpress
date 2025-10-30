@@ -10,7 +10,7 @@ const router = Router();
 router.post("/login", async (req: Request<{}, {}, IUser>, res: Response) => {
 	const parsed = loginScheme.safeParse(req.body);
 	if (!parsed.success) {
-		return res.status(409).json({ error: "Недопустимый email" });
+		return res.status(409).json({ message: "Недопустимый email", status: 'error' });
 	}
 	const auth = await checkUser(parsed.data.email, parsed.data.password);
 	if (!auth)

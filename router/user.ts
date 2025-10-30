@@ -17,6 +17,8 @@ router.get("/me", authToken, async (req: Request, res: Response) => {
 			id: true,
 			username: true,
 			email: true,
+			password: true,
+			role: true,
 			created_at: true,
 		},
 	});
