@@ -1,6 +1,7 @@
 import { prisma } from "../db/db";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import type { IUser } from "../types/UserTypes";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES = "1h";
@@ -46,3 +47,31 @@ export const addUser = async (
 	});
 	return newUser;
 };
+
+
+export const addDeposit = async (
+	name: string,
+	summary: number,
+	userID: number
+) => {
+	const newDeposit = await prisma.deposit.create({
+			data: {
+				name: name,
+				summary: summary,
+				author_id: userID,
+			},
+		});
+	return newDeposit
+}
+
+
+export const getDeposits = async (user: IUser) => {
+	if(user?.role === 'ADMIN'){
+			const deposits = await prisma.deposit.findMany();
+			return deposits
+		}
+	const deposits = await prisma.deposit.findMany({
+			where: {author_id: user.id}
+		})
+	return deposits
+}
