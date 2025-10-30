@@ -9,11 +9,32 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
+model User {
 	id 		 	Int			@id 	@default(autoincrement())
 	username 	String 		@unique
 	email	 	String 		@unique
 	password 	String
-	role		String?
+	role		Role		@default(USER)
 	created_at 	DateTime 	@default(now())
+	deposits 	Deposit[]
+
+
+	@@map("users")
+}
+
+model Deposit {
+	id			Int 		@id 	@default(autoincrement())
+	name 		String
+	summary 	Float
+	author_id 	Int
+	author 		User 		@relation(fields: [author_id], references: [id])
+	created_at 	DateTime 	@default(now())
+	updated_at 	DateTime 	@updatedAt
+
+	@@map("deposits")
+}
+
+enum Role {
+	USER
+	ADMIN
 }

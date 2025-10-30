@@ -31,10 +31,10 @@ router.post("/register", async (req: Request<{}, {}, IUser>, res: Response) => {
 	if (!parsed.success) {
 		return res.status(409).json({ error: "Недопустимый email" });
 	}
-	const existEmail = await prisma.users.findUnique({
+	const existEmail = await prisma.user.findUnique({
 		where: { email: parsed.data?.email },
 	});
-	const existUsername = await prisma.users.findFirst({
+	const existUsername = await prisma.user.findFirst({
 		where: { username: parsed.data?.username },
 	});
 	if (existEmail || existUsername) {

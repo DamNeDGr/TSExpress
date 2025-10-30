@@ -21,7 +21,7 @@ export const generateToken = async (id: number, email: string, role?: string) =>
 };
 
 export const checkUser = async (email: string, password: string) => {
-	const user = await prisma.users.findUnique({
+	const user = await prisma.user.findUnique({
 		where: { email: email },
 	});
 	if (user) {
@@ -37,11 +37,10 @@ export const addUser = async (
 	password: string
 ) => {
 	const hashPassword = await bcrypt.hash(password, 10);
-	const newUser = await prisma.users.create({
+	const newUser = await prisma.user.create({
 		data: {
 			email: email,
 			username: username,
-			role: 'user',
 			password: hashPassword,
 		},
 	});

@@ -6,12 +6,12 @@ import { authToken, checkAdmin } from "../middleware/authMiddleware";
 const router = Router();
 
 router.get("/users", checkAdmin, async (req: Request, res: Response) => {
-	const users = await prisma.users.findMany();
+	const users = await prisma.user.findMany();
 	return res.json(users);
 });
 
 router.get("/me", authToken, async (req: Request, res: Response) => {
-	const user = await prisma.users.findUnique({
+	const user = await prisma.user.findUnique({
 		where: { id: req.userId },
 		select: {
 			id: true,
