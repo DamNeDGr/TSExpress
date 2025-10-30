@@ -25,6 +25,100 @@ router.post("/add", authToken, async (req: Request<{}, {}>, res: Response) => {
 	return res.status(201).json({'message': 'Долг создан', 'data': newDeposit})
 });
 
+router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
+	const userId = req.userId;
+	const user = await prisma.user.findUnique({
+		where: {id: userId}
+	})
+	const depositId = Number(req.params.id)
+	const {summary} = req.body
+	try {
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+		
+		const deposit = await prisma.deposit.findUnique({
+			where: { id: depositId },
+		});
+
+		if (!deposit)
+			return res.status(404).json({ message: "Deposit not found" });
+
+		if (user?.role === 'ADMIN'){
+			const updatedDeposit = await prisma.deposit.update({
+				where: { id: depositId },
+				data: { summary },
+			});
+			return res.json({
+				message: "Deposit updated successfully",
+				deposit: updatedDeposit,
+			});
+		}
+
+		if (deposit.author_id !== userId)
+			return res.status(403).json({ message: "Access denied" });
+
+
+		const updatedDeposit = await prisma.deposit.update({
+			where: { id: depositId },
+			data: { summary },
+		});
+
+		return res.json({
+			message: "Deposit updated successfully",
+			deposit: updatedDeposit,
+		});
+	}
+	catch {
+
+	}
+})
+
+
+router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
+	const userId = req.userId;
+	const depositId = Number(req.params.id);
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+	});
+
+	try {
+		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		
+		const deposit = await prisma.deposit.findUnique({
+			where: { id: depositId },
+		});
+
+		if (!deposit)
+			return res.status(404).json({ message: "Deposit not found" });
+
+		if (user?.role === 'ADMIN'){
+			const deleteDeposit = await prisma.deposit.delete({
+				where: { id: depositId },
+			});
+			return res.json({
+				message: "Deposit delete successfully",
+				deposit: deleteDeposit,
+			});
+		}
+
+		if (deposit.author_id !== userId)
+			return res.status(403).json({ message: "Access denied" });
+
+
+		const deleteDeposit = await prisma.deposit.delete({
+			where: {id: depositId}
+		})
+
+		return res.json({
+			message: "Deposit delete successfully",
+			deposit: deleteDeposit,
+		});
+	}
+	catch (err){
+		return res.json({'error': err})
+	}
+})
+
 
 
 export default router;
