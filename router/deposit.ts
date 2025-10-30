@@ -4,6 +4,7 @@ import { prisma } from "../db/db";
 import { authToken } from "../middleware/authMiddleware";
 import { addDeposit, getDeposits } from "../utils/utils";
 import { Role } from "../types/UserTypes";
+import {depositSchema} from "../utils/validator.ts";
 
 const router = Router();
 
@@ -19,9 +20,10 @@ router.get('/', authToken, async (req: Request, res: Response) => {
 
 router.post("/add", authToken, async (req: Request<{}, {}>, res: Response) => {
 	const userID = req.userId
-	const {name, summary} = req.body
+	const parsed = depositSchema.safeParse(req.body);
 	if(!userID) return res.json({'error': 'Ошибка попробуйте позднее'})
-	const newDeposit = await addDeposit(name, summary, userID)
+	if(!parsed.success) return res.json(({'error': 'Имя или долг невалидный'}))
+	const newDeposit = await addDeposit(parsed.data?.name, parsed.data.summary, userID)
 	return res.status(201).json({'message': 'Долг создан', 'data': newDeposit})
 });
 
