@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
+import { Role } from "../types/UserTypes";
+
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -27,7 +29,7 @@ export const checkAdmin = (req: Request, res: Response, next: NextFunction) => {
 		if (!token) return res.status(401).json({ error: "Токен не найден" });
 		try {
 			const payload = jwt.verify(token, JWT_SECRET) as { role: string };
-			if(payload.role != 'ADMIN'){
+			if(payload.role != Role.admin){
 				return res.status(403).json({ error: "Недостаточно прав" });
 			}
 			

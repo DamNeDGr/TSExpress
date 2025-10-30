@@ -5,3 +5,9 @@ export interface IUser {
 	role: string
 	password: string;
 }
+
+
+export enum Role {
+	admin = 'ADMIN',
+	user = 'USER'
+}

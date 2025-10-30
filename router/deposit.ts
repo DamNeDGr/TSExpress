@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../db/db";
 import { authToken } from "../middleware/authMiddleware";
 import { addDeposit, getDeposits } from "../utils/utils";
+import { Role } from "../types/UserTypes";
 
 const router = Router();
 
@@ -13,7 +14,6 @@ router.get('/', authToken, async (req: Request, res: Response) => {
 	})
 	if(!user) return res.status(403).json({'error': 'Ошибка доступа'})
 	const deposits = await getDeposits(user)
-	console.log(deposits)
 	return res.json({'data': deposits})
 })
 
@@ -43,7 +43,7 @@ router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 		if (!deposit)
 			return res.status(404).json({ message: "Deposit not found" });
 
-		if (user?.role === 'ADMIN'){
+		if (user?.role === Role.admin){
 			const updatedDeposit = await prisma.deposit.update({
 				where: { id: depositId },
 				data: { summary },
@@ -91,7 +91,7 @@ router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 		if (!deposit)
 			return res.status(404).json({ message: "Deposit not found" });
 
-		if (user?.role === 'ADMIN'){
+		if (user?.role === Role.admin){
 			const deleteDeposit = await prisma.deposit.delete({
 				where: { id: depositId },
 			});
