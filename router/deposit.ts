@@ -2,17 +2,16 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { prisma } from "../db/db";
 import { authToken } from "../middleware/authMiddleware";
-import { addDeposit, getDeposits } from "../utils/utils";
+import {addDeposit, getDeposits, getUserByID} from "../utils/utils";
 import { Role } from "../types/UserTypes";
 import {depositSchema} from "../utils/validator.ts";
 
 const router = Router();
 
 router.get('/', authToken, async (req: Request, res: Response) => {
-	const userID = req.userId
-	const user = await prisma.user.findUnique({
-		where: {id: userID}
-	})
+	const userID = req.userId;
+	if (!userID) return res.status(403).json({'error': 'Ошибка доступа'})
+	const user = await getUserByID(userID);
 	if(!user) return res.status(403).json({'error': 'Ошибка доступа'})
 	const deposits = await getDeposits(user)
 	return res.json({'data': deposits})
@@ -29,35 +28,32 @@ router.post("/add", authToken, async (req: Request<{}, {}>, res: Response) => {
 
 router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 	const userId = req.userId;
-	const user = await prisma.user.findUnique({
-		where: {id: userId}
-	})
+	if(!userId) return res.status(403).json({'error': 'Ошибка доступа'})
+	const user = await getUserByID(userId)
+	if (!user) return res.status(403).json({'error': 'Ошибка доступа'})
 	const depositId = Number(req.params.id)
 	const {summary} = req.body
 	try {
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
-		
 		const deposit = await prisma.deposit.findUnique({
 			where: { id: depositId },
 		});
 
 		if (!deposit)
-			return res.status(404).json({ message: "Deposit not found" });
+			return res.status(404).json({ message: "Долг не найден" });
 
-		if (user?.role === Role.admin){
+		if (user.role === Role.admin){
 			const updatedDeposit = await prisma.deposit.update({
 				where: { id: depositId },
 				data: { summary },
 			});
 			return res.json({
-				message: "Deposit updated successfully",
+				message: "Долг успешно обновлен",
 				deposit: updatedDeposit,
 			});
 		}
 
-		if (deposit.author_id !== userId)
-			return res.status(403).json({ message: "Access denied" });
+		if (deposit.author_id !== userId) return res.status(403).json({ message: "Доступ запрещен", data: user});
+
 
 
 		const updatedDeposit = await prisma.deposit.update({
@@ -66,45 +62,44 @@ router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 		});
 
 		return res.json({
-			message: "Deposit updated successfully",
+			message: "Долг успешно обновлен",
 			deposit: updatedDeposit,
 		});
 	}
-	catch {
-
+	catch (err){
+		return res.json({'error': err})
 	}
 })
 
 
 router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 	const userId = req.userId;
+	if (!userId) return res.status(403).json({'error': 'Ошибка доступа'})
 	const depositId = Number(req.params.id);
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-	});
+	const user = await getUserByID(userId);
 
 	try {
-		if (!userId) return res.status(401).json({ message: "Unauthorized" });
+		if (!userId) return res.status(401).json({ message: "Вы не авторизованы" });
 		
 		const deposit = await prisma.deposit.findUnique({
 			where: { id: depositId },
 		});
 
 		if (!deposit)
-			return res.status(404).json({ message: "Deposit not found" });
+			return res.status(404).json({ message: "Долг не найден" });
 
 		if (user?.role === Role.admin){
 			const deleteDeposit = await prisma.deposit.delete({
 				where: { id: depositId },
 			});
 			return res.json({
-				message: "Deposit delete successfully",
+				message: "Долг успешно удален",
 				deposit: deleteDeposit,
 			});
 		}
 
 		if (deposit.author_id !== userId)
-			return res.status(403).json({ message: "Access denied" });
+			return res.status(403).json({ message: "Доступ запрещен" });
 
 
 		const deleteDeposit = await prisma.deposit.delete({
@@ -112,7 +107,7 @@ router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 		})
 
 		return res.json({
-			message: "Deposit delete successfully",
+			message: "Долг успешно удален",
 			deposit: deleteDeposit,
 		});
 	}

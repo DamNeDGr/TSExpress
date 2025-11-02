@@ -8,7 +8,7 @@ const JWT_EXPIRES = "1h";
 
 export const generateToken = async (id: number, email: string, role?: string) => {
 	if (JWT_SECRET && JWT_EXPIRES) {
-		const token = jwt.sign(
+		return jwt.sign(
 			{
 				userId: id,
 				email: email,
@@ -17,7 +17,6 @@ export const generateToken = async (id: number, email: string, role?: string) =>
 			JWT_SECRET,
 			{ expiresIn: JWT_EXPIRES }
 		);
-		return token;
 	}
 };
 
@@ -48,6 +47,12 @@ export const addUser = async (
 	return newUser;
 };
 
+export const getUserByID = async (id: number) => {
+	const user = await prisma.user.findUnique({
+		where: { id: id },
+	})
+	return user;
+}
 
 export const addDeposit = async (
 	name: string,
@@ -75,3 +80,4 @@ export const getDeposits = async (user: IUser) => {
 		})
 	return deposits
 }
+
