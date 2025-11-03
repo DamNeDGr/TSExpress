@@ -29,8 +29,9 @@ router.post("/login", async (req: Request<{}, {}, IUser>, res: Response) => {
 router.post("/register", async (req: Request<{}, {}, IUser>, res: Response) => {
 	const parsed = registerSchema.safeParse(req.body);
 	if (!parsed.success) {
-		return res.status(409).json({ error: "Недопустимый email" });
+		return res.status(409).json({ error: "Недопустимый email или username" });
 	}
+	console.log(parsed.data);
 	const existEmail = await prisma.user.findUnique({
 		where: { email: parsed.data?.email },
 	});

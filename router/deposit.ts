@@ -14,6 +14,7 @@ router.get('/', authToken, async (req: Request, res: Response) => {
 	const user = await getUserByID(userID);
 	if(!user) return res.status(403).json({'error': 'Ошибка доступа'})
 	const deposits = await getDeposits(user)
+	if(!deposits.length) return res.status(404).json({ message: "Долги не найдены" });
 	return res.json({'data': deposits})
 })
 
