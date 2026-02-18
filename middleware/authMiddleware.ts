@@ -10,9 +10,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 export const authToken = (req: Request, res: Response, next: NextFunction) => {
 	if (JWT_SECRET) {
-		const authHeader = req.headers.authorization;
-		const token = authHeader?.split(" ")[1];
-		if (!token) return res.status(401).json({ error: "Токен не найден" });
+		const token = req.cookies?.token;
+		if (!token) return res.status(401).json({ error: "Вы не авторизованы" });
 		try {
 			const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
 			req.userId = payload.userId;
@@ -25,9 +24,8 @@ export const authToken = (req: Request, res: Response, next: NextFunction) => {
 
 export const checkAdmin = async (req: Request, res: Response, next: NextFunction) => {
 	if (JWT_SECRET) {
-		const authHeader = req.headers.authorization;
-		const token = authHeader?.split(" ")[1];
-		if (!token) return res.status(401).json({ error: "Токен не найден" });
+		const token = req.cookies?.token;
+		if (!token) return res.status(401).json({ error: "Вы не авторизованы" });
 		try {
 			const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
 			const user = await getUserByID(payload.userId);

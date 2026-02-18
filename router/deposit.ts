@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { prisma } from "../db/db";
 import { authToken } from "../middleware/authMiddleware";
-import {addDeposit, getDeposits, getUserByID} from "../utils/utils";
+import {addDeposit, getAllDeposits, getDeposits, getDepositsById, getUserByID} from "../utils/utils";
 import { Role } from "../types/UserTypes";
 import {depositSchema} from "../utils/validator.ts";
 
@@ -15,7 +15,78 @@ router.get('/', authToken, async (req: Request, res: Response) => {
 	if(!user) return res.status(403).json({'error': 'Ошибка доступа'})
 	const deposits = await getDeposits(user)
 	if(!deposits.length) return res.status(404).json({ message: "Долги не найдены" });
-	return res.json({'data': deposits})
+	return res.json({
+		'status': 'success',
+		'data': deposits
+	})
+})
+
+router.get('/all', authToken, async (req: Request, res: Response) => {
+	const userID = req.userId;
+	if (!userID) return res.status(403).json({'error': 'Ошибка доступа'})
+	const user = await getUserByID(userID);
+	if(!user) return res.status(403).json({'error': 'Ошибка доступа'})
+	const deposits = await getAllDeposits(user)
+	if(!deposits.length) return res.status(404).json({ message: "Долги не найдены" });
+	return res.json({
+		'status': 'success',
+		'data': deposits
+	})
+})
+
+router.get('/:id', authToken, async (req: Request, res: Response) => {
+	const userID = req.userId;
+	const depositId = Number(req.params.id);
+	if (!userID) return res.status(403).json({'error': 'Ошибка доступа'})
+	const user = await getUserByID(userID);
+	const deposit = await prisma.deposit.findUnique({
+		where: {
+			id: depositId,
+			author_id: user?.id
+		}
+	});
+	if (!deposit) return res.status(404).json({
+		'status': 'not found',
+		'data': []
+	})
+	return res.status(200).json(deposit)
+})
+
+
+
+
+router.get('/search/:search', authToken, async (req: Request<{}, {}>, res: Response) => {
+	try {
+		const userId = req.userId;
+		const searchParam = req.params.search;
+		const findDeposit = await prisma.deposit.findMany({
+			
+			where: {
+				author_id: userId,
+				name: {
+					contains: searchParam,
+					mode: "insensitive"
+				}
+			},
+			select: {
+				id: true,
+				name: true,
+				summary: true
+			}
+		})
+		if (findDeposit.length <= 0) {
+			return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
+		}
+		return res.status(200).json({
+			'status': 'success',
+			'data': findDeposit
+		})
+	} catch (err) {
+		console.log(err)
+	}
 })
 
 router.post("/add", authToken, async (req: Request<{}, {}>, res: Response) => {
@@ -29,9 +100,15 @@ router.post("/add", authToken, async (req: Request<{}, {}>, res: Response) => {
 
 router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 	const userId = req.userId;
-	if(!userId) return res.status(403).json({'error': 'Ошибка доступа'})
+	if(!userId) return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 	const user = await getUserByID(userId)
-	if (!user) return res.status(403).json({'error': 'Ошибка доступа'})
+	if (!user) return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 	const depositId = Number(req.params.id)
 	const {summary} = req.body
 	try {
@@ -40,7 +117,10 @@ router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 		});
 
 		if (!deposit)
-			return res.status(404).json({ message: "Долг не найден" });
+			return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 
 		if (user.role === Role.admin){
 			const updatedDeposit = await prisma.deposit.update({
@@ -68,7 +148,10 @@ router.patch('/update/:id', authToken, async (req: Request, res: Response) => {
 		});
 	}
 	catch (err){
-		return res.json({'error': err})
+		return res.json({
+			'status': 'failed',
+			'error': 'Ошибка обновления записи'
+		})
 	}
 })
 
@@ -80,14 +163,20 @@ router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 	const user = await getUserByID(userId);
 
 	try {
-		if (!userId) return res.status(401).json({ message: "Вы не авторизованы" });
+		if (!userId) return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 		
 		const deposit = await prisma.deposit.findUnique({
 			where: { id: depositId },
 		});
 
 		if (!deposit)
-			return res.status(404).json({ message: "Долг не найден" });
+			return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 
 		if (user?.role === Role.admin){
 			const deleteDeposit = await prisma.deposit.delete({
@@ -100,7 +189,10 @@ router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 		}
 
 		if (deposit.author_id !== userId)
-			return res.status(403).json({ message: "Доступ запрещен" });
+			return res.status(404).json({
+			'status': 'not found',
+			'data': []
+		})
 
 
 		const deleteDeposit = await prisma.deposit.delete({
@@ -109,11 +201,14 @@ router.delete('/delete/:id', authToken, async (req: Request, res: Response) => {
 
 		return res.json({
 			message: "Долг успешно удален",
-			deposit: deleteDeposit,
+			deposit: deleteDeposit.name,
 		});
 	}
 	catch (err){
-		return res.json({'error': err})
+		return res.json({
+			'status': 'failed',
+			'error': 'Ошибка удаления записи'
+		})
 	}
 })
 
