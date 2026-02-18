@@ -1,15 +1,143 @@
-# tslesson
+# 🚀 Система учета долгов — Backend API на TypeScript + Express
 
-To install dependencies:
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
-```bash
-bun install
+---
+
+## 📌 Описание
+
+**TSExpress** — это backend‑приложение на **TypeScript**, построенное на **Express** с использованием **Prisma ORM** и ролевой авторизации.
+
+Проект создавался как учебно‑практический, с упором на:
+- чистую архитектуру
+- типобезопасность
+- читаемость кода
+- работу напрямую с документацией библиотек
+
+---
+
+## 🧠 Основные возможности
+
+- 🔐 JWT‑аутентификация
+- 👤 Роли пользователей (`USER`, `ADMIN`)
+- 🧩 Middleware для проверки доступа
+- 📦 Работа с БД через Prisma
+- 🧱 Разделение на роуты / middleware / utils
+- 📄 Типизация запросов и ответов
+
+---
+
+## 🛠 Используемые технологии
+
+| Технология | Назначение |
+|-----------|-----------|
+| **TypeScript** | Статическая типизация |
+| **Node.js** | Среда выполнения |
+| **Express** | HTTP‑сервер |
+| **Prisma ORM** | Работа с базой данных |
+| **PostgreSQL** | Реляционная БД |
+| **JWT** | Аутентификация |
+
+---
+
+## 📂 Структура проекта
+
+```text
+src/
+├── db/             # Подключение к базе данных
+├── middleware/     # Auth, роли, проверки
+├── prisma/         # Prisma schema и клиент
+├── router/         # API роуты
+├── types/          # Расширения типов Express
+├── utils/          # Вспомогательные функции
+├── index.ts        # Точка входа
 ```
 
-To run:
+---
 
-```bash
-bun run index.ts
+## 🔑 Примеры API
+
+### 👤 Получить текущего пользователя
+
+```http
+GET /me
+Authorization: Bearer <token>
 ```
 
-This project was created using `bun init` in bun v1.2.14. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Ответ:
+```json
+{
+  "data": {
+    "id": "uuid",
+    "username": "user",
+    "email": "user@email.com",
+    "role": "USER",
+    "created_at": "2024-01-01"
+  }
+}
+```
+
+---
+
+### 👥 Получить всех пользователей (ADMIN)
+
+```http
+GET /users
+Authorization: Bearer <admin_token>
+```
+
+---
+
+## ⚙️ Установка и запуск
+
+```bash
+# Установка зависимостей
+npm install
+
+# Генерация Prisma клиента
+npx prisma generate
+
+# Миграции
+npx prisma migrate dev
+
+# Запуск сервера
+npm run dev
+```
+
+---
+
+## 📖 Принципы проекта
+
+- ❌ Нет `any`
+- ✅ Явная типизация
+- ✅ Минимум магии
+- ✅ Читаемый код
+- ✅ Предсказуемое поведение API
+
+---
+
+## 🎯 Зачем этот проект
+
+Проект создан для:
+- практики backend‑разработки
+- изучения Express + Prisma
+- демонстрации архитектурного подхода
+- удовольствия от программирования 🙂
+
+---
+
+## 🧑‍💻 Автор
+
+**DamNeDGr**  
+Backend / TypeScript
+
+GitHub: https://github.com/DamNeDGr
+
+---
+
+⭐ Если проект оказался полезным — можно поставить звезду
+
